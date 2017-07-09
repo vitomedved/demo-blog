@@ -1,12 +1,14 @@
 var express = require("express"),
     app = express(),
     mongoose = require("mongoose"),
-    bodyParser = require("body-parser");
+    bodyParser = require("body-parser"),
+    methodOverride = require("method-override");
 //initial config
 mongoose.connect("mongodb://localhost/restful_blog_app");
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(methodOverride("_method"));
 
 //mongoose model config
 var blogSchema = new mongoose.Schema({
@@ -44,6 +46,36 @@ app.post("/blogs", function(req, res){
             res.redirect("/blogs");
         }
     });
+});
+
+app.get("/blogs/:id", function(req, res) {
+    Blog.findById(req.params.id, function(err, blog){
+        if(err){
+            res.redirect("/blogs");
+        }else{
+            res.render("show", {blog: blog});
+        }
+    });
+});
+
+app.get("/blogs/:id/edit", function(req, res) {
+    Blog.findById(req.params.id, function(err, blog){
+        if(err){
+            res.redirect("/blogs");
+        }else{
+            res.render("edit", {blog: blog});
+        }
+    });
+});
+
+app.put("/blogs/:id", function(req, res){
+    Blog.findByIdAndUpdate(req.params.id, req.body.blog, function(err, blog){
+        if(err){
+            res.redirect("/");
+        }else{
+            res.redirect("/blogs/" + req.params.id);
+        }
+    })
 });
 
 app.listen(process.env.PORT, process.env.IP, function(){
